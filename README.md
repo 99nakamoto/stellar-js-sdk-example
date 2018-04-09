@@ -1,4 +1,4 @@
-# js-sdk-example
+# Stellar JS SKD Example
 
 To execute:
 
