@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 
 // stellar js sdk
 var StellarSdk = require('stellar-sdk');
+var request = require('request');
 
 var app = express();
 
@@ -51,9 +52,12 @@ StellarSdk.Network.useTestNetwork();
 
 // http://localhost:3000/
 app.get('/', function(req, res) {
-    res.send("<h1>Hello World!</h1>\
+    res.send("<h1>Horizon</h1>\
     <a href='/transaction'>Transaction</a><br />\
-    <a href='/trade_aggregation'>Trade Aggregation</a>");
+    <a href='/trade_aggregation'>Trade Aggregation</a><br />\
+    <h1>Bridge Server</h1>\
+    <a href='/payment'>Payment</a><br />\
+    <a href='/receive'>Receive</a><br />");
 });
 
 
@@ -131,7 +135,7 @@ app.get('/trade_aggregation', async function(req, res) {
     trade_aggregation = server.tradeAggregation(
         assetObject1,
         assetObject2,
-        Date.now() - (1000 * 3600 * 24), // 1 days
+        Date.now() - (1000 * 3600 * 24 * 10), // 1 days
         Date.now(),
         1000 * 60 * 5 // 5 minutes
     );
@@ -144,6 +148,62 @@ app.get('/trade_aggregation', async function(req, res) {
     res.send(str);
 });
 
+
+// localhost:3000/payment
+app.get('/payment', async function(req, res) {
+    var str = "<h1><a href='/'>Home</a></h1>";
+    str += "<p>start testing payment...</p>";
+
+    request.post({
+      url: 'http://localhost:8006/payment',
+      form: {
+        amount: '1',
+        asset_code: 'USD',
+        asset_issuer: 'GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ',
+        destination: 'GCFXHS4GXL6BVUCXBWXGTITROWLVYXQKQLF4YH5O5JT3YZXCYPAFBJZB',
+        source: 'SAV75E2NK7Q5JZZLBBBNUPCIAKABN64HNHMDLD62SZWM6EBJ4R7CUNTZ'
+      }
+    }, function(error, response, body) {
+      if (error || response.statusCode !== 200) {
+        console.error('ERROR!', error || body);
+      }
+      else {
+        console.log('SUCCESS!', body);
+      }
+    });
+
+    str += "<p>payment post finished, check console</p>";
+    res.send(str);
+});
+
+// localhost:3000/receive
+app.post('/receive', function (request, response) {
+  // var payment = request.body;
+  //
+  // // `receive` may be called multiple times for the same payment, so check that
+  // // you haven't already seen this payment ID.
+  // if (getPaymentByIdFromDb(payment.id)) {
+  //   return response.status(200).end();
+  // }
+  //
+  // // Because we have one Stellar account representing many customers, the
+  // // customer the payment is intended for should be in the transaction memo.
+  // var customer = getAccountFromDb(payment.memo);
+  //
+  // // You need to check the asset code and issuer to make sure it's an asset
+  // // that you can accept payment to this account for. In this example, we just
+  // // convert the amount to USD and adding the equivalent amount to the customer
+  // // balance. You need to implement `convertToUsd()` yourself.
+  // var dollarAmount = convertToUsd(
+  //   payment.amount, payment.asset_code, payment.asset_issuer);
+  // addToBankAccountBalance(customer, dollarAmount);
+  // response.status(200).end();
+  // console.log('Added ' + dollarAmount + ' USD to account: ' + customer);
+});
+
+app.listen(8005, function () {
+  console.log('Bridge server callbacks running on port 8005!');
+});
 
 app.use('/users', usersRouter);
 
