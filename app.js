@@ -215,59 +215,43 @@ app.get('/trust_recp', async function(req, res) {
             res.send(str);
         });
     })
-
-    // Second, the issuing account actually sends a payment using the asset
-    // .then(function() {
-    //   return server.loadAccount(issuingKeys.publicKey())
-    // })
-    // .then(function(issuer) {
-    //   var transaction = new StellarSdk.TransactionBuilder(issuer)
-    //     .addOperation(StellarSdk.Operation.payment({
-    //       destination: receivingKeys.publicKey(),
-    //       asset: astroDollar,
-    //       amount: '10'
-    //     }))
-    //     .build();
-    //   transaction.sign(issuingKeys);
-    //   return server.submitTransaction(transaction)
-    //     .then(function(transactionResult) {
-    //         console.log(JSON.stringify(transactionResult, null, 2));
-    //         console.log('\nSuccess! View the transaction at: ');
-    //         console.log(transactionResult._links.transaction.href);
-    //     });
-    // })
-    // .catch(function(error) {
-    //   console.error('Error!', error);
-    // });
 });
 
 
 // localhost:3000/receive
 app.post('/receive', function (request, response) {
-  // var payment = request.body;
-  //
-  // // `receive` may be called multiple times for the same payment, so check that
-  // // you haven't already seen this payment ID.
+  var payment = request.body;
+
+  // `receive` may be called multiple times for the same payment, so check that
+  // you haven't already seen this payment ID.
   // if (getPaymentByIdFromDb(payment.id)) {
   //   return response.status(200).end();
   // }
-  //
-  // // Because we have one Stellar account representing many customers, the
-  // // customer the payment is intended for should be in the transaction memo.
+
+  // Because we have one Stellar account representing many customers, the
+  // customer the payment is intended for should be in the transaction memo.
   // var customer = getAccountFromDb(payment.memo);
-  //
-  // // You need to check the asset code and issuer to make sure it's an asset
-  // // that you can accept payment to this account for. In this example, we just
-  // // convert the amount to USD and adding the equivalent amount to the customer
-  // // balance. You need to implement `convertToUsd()` yourself.
+
+  // You need to check the asset code and issuer to make sure it's an asset
+  // that you can accept payment to this account for. In this example, we just
+  // convert the amount to USD and adding the equivalent amount to the customer
+  // balance. You need to implement `convertToUsd()` yourself.
   // var dollarAmount = convertToUsd(
   //   payment.amount, payment.asset_code, payment.asset_issuer);
   // addToBankAccountBalance(customer, dollarAmount);
-  // response.status(200).end();
+  //
   // console.log('Added ' + dollarAmount + ' USD to account: ' + customer);
+  console.log("Now receiving a payment at port 8005");
+  console.log(payment);
+  console.log("Amount is:");
+  console.log(payment.amount);
+  console.log("Payment receive finished. ");
+
+  response.status(200).end();
 });
 
 app.listen(8005, function () {
+  console.log('Bridge server callbacks running on port 8005!');
   console.log('Bridge server callbacks running on port 8005!');
 });
 
