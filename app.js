@@ -56,6 +56,7 @@ app.get('/', function(req, res) {
     <a href='/transaction'>Transaction</a><br />\
     <a href='/trade_aggregation'>Trade Aggregation</a><br />\
     <h1>Bridge Server</h1>\
+    <a href='/trust_recp'>Trust assest issuer</a><br />\
     <a href='/payment'>Payment</a><br />\
     <a href='/receive'>Receive</a><br />");
 });
@@ -158,9 +159,9 @@ app.get('/payment', async function(req, res) {
       url: 'http://localhost:8006/payment',
       form: {
         amount: '1',
-        asset_code: 'USD',
+        asset_code: 'AstroDollar',
         asset_issuer: 'GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ',
-        destination: 'GCFXHS4GXL6BVUCXBWXGTITROWLVYXQKQLF4YH5O5JT3YZXCYPAFBJZB',
+        destination: 'GACZKTYVNAAYCBBOM3IDL25MFESTZF62YCJTGR5FAKWCTLCSUWD57PNM',
         source: 'SAV75E2NK7Q5JZZLBBBNUPCIAKABN64HNHMDLD62SZWM6EBJ4R7CUNTZ'
       }
     }, function(error, response, body) {
@@ -170,11 +171,76 @@ app.get('/payment', async function(req, res) {
       else {
         console.log('SUCCESS!', body);
       }
-    });
 
-    str += "<p>payment post finished, check console</p>";
-    res.send(str);
+      str += "<p>payment post finished, check console</p>";
+      str += body;
+      // str += JSON.stringify(StellarSdk.xdr.TransactionEnvelope.fromXDR(JSON.stringify(body.result_xdr), 'base64'));
+      res.send(str);
+    });
 });
+
+// localhost:3000/trust_recp
+app.get('/trust_recp', async function(req, res) {
+    var str = "<h1><a href='/'>Home</a></h1>";
+    str += "<p>start building trustline...</p>";
+
+  // Keys for accounts to issue and receive the new asset
+  var issuingPublicKey = 'GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ';
+  var receivingKeys = StellarSdk.Keypair
+    .fromSecret('SD6UAQTLV3AB2G3OO5IKIBZVRYRSZTQ6OGYK4EQMDG7V7HD3LNP3ZLSP');
+
+  // Create an object to represent the new asset
+  var astroDollar = new StellarSdk.Asset('AstroDollar', issuingPublicKey);
+
+  // First, the receiving account must trust the asset
+  server.loadAccount(receivingKeys.publicKey())
+    .then(function(receiver) {
+      var transaction = new StellarSdk.TransactionBuilder(receiver)
+        // The `changeTrust` operation creates (or alters) a trustline
+        // The `limit` parameter below is optional
+        .addOperation(StellarSdk.Operation.changeTrust({
+          asset: astroDollar,
+          limit: '1000'
+        }))
+        .build();
+      transaction.sign(receivingKeys);
+      console.log('going to trust the issuing account');
+      return server.submitTransaction(transaction)
+        .then(function(transactionResult) {
+            console.log(JSON.stringify(transactionResult, null, 2));
+            console.log('\nSuccess! View the transaction at: ');
+            console.log(transactionResult._links.transaction.href);
+
+            str += JSON.stringify(transactionResult, null, 2);
+            res.send(str);
+        });
+    })
+
+    // Second, the issuing account actually sends a payment using the asset
+    // .then(function() {
+    //   return server.loadAccount(issuingKeys.publicKey())
+    // })
+    // .then(function(issuer) {
+    //   var transaction = new StellarSdk.TransactionBuilder(issuer)
+    //     .addOperation(StellarSdk.Operation.payment({
+    //       destination: receivingKeys.publicKey(),
+    //       asset: astroDollar,
+    //       amount: '10'
+    //     }))
+    //     .build();
+    //   transaction.sign(issuingKeys);
+    //   return server.submitTransaction(transaction)
+    //     .then(function(transactionResult) {
+    //         console.log(JSON.stringify(transactionResult, null, 2));
+    //         console.log('\nSuccess! View the transaction at: ');
+    //         console.log(transactionResult._links.transaction.href);
+    //     });
+    // })
+    // .catch(function(error) {
+    //   console.error('Error!', error);
+    // });
+});
+
 
 // localhost:3000/receive
 app.post('/receive', function (request, response) {
