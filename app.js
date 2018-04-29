@@ -319,12 +319,8 @@ var options = {
     rejectUnauthorized: false
 };
 
-var server = require('https').createServer(options, app).listen(3000, function(){
-    console.log("server started at port 3000");
+var httpsServer = require('https').createServer(options, app).listen(3000, function(){
+    console.log("HTTPS server started at port 3000");
 });
-
-// app.listen(3000, function() {
-//     console.log('Example app listening on port 3000!');
-// });
 
 module.exports = app;
