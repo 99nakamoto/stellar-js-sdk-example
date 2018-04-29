@@ -10,7 +10,6 @@ var usersRouter = require('./routes/users');
 // stellar js sdk
 var StellarSdk = require('stellar-sdk');
 var request = require('request');
-var fs = require('fs');
 
 var app = express();
 
@@ -312,19 +311,8 @@ app.use(function(err, req, res, next) {
     res.render('error');
 });
 
-var options = {
-    key: fs.readFileSync('/Users/ranwei/git/localhost.key'),
-    cert: fs.readFileSync('/Users/ranwei/git/localhost.crt'),
-    requestCert: false,
-    rejectUnauthorized: false
-};
-
-var server = require('https').createServer(options, app).listen(3000, function(){
-    console.log("server started at port 3000");
+app.listen(3000, function() {
+    console.log('Example app listening on port 3000!');
 });
-
-// app.listen(3000, function() {
-//     console.log('Example app listening on port 3000!');
-// });
 
 module.exports = app;
