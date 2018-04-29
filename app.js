@@ -57,7 +57,6 @@ app.get('/', function(req, res) {
     <a href='/trade_aggregation'>Trade Aggregation</a><br />\
     <h1>Bridge Server</h1>\
     <a href='/trust_recp'>Trust assest issuer</a><br />\
-    <a href='/untrust_recp'>Untrust assest issuer</a><br />\
     <a href='/payment'>Payment</a><br />\
     <a href='/receive'>Receive</a><br />");
 });
@@ -218,43 +217,6 @@ app.get('/trust_recp', async function(req, res) {
     })
 });
 
-// localhost:3000/trust_recp
-app.get('/untrust_recp', async function(req, res) {
-    var str = "<h1><a href='/'>Home</a></h1>";
-    str += "<p>start to untrust...</p>";
-
-  // Keys for accounts to issue and receive the new asset
-  var issuingPublicKey = 'GAIUIQNMSXTTR4TGZETSQCGBTIF32G2L5P4AML4LFTMTHKM44UHIN6XQ';
-  var receivingKeys = StellarSdk.Keypair
-    .fromSecret('SD6UAQTLV3AB2G3OO5IKIBZVRYRSZTQ6OGYK4EQMDG7V7HD3LNP3ZLSP');
-
-  // Create an object to represent the new asset
-  var astroDollar = new StellarSdk.Asset('AstroDollar', issuingPublicKey);
-
-  // First, the receiving account must trust the asset
-  server.loadAccount(receivingKeys.publicKey())
-    .then(function(receiver) {
-      var transaction = new StellarSdk.TransactionBuilder(receiver)
-        // The `changeTrust` operation creates (or alters) a trustline
-        // The `limit` parameter below is optional
-        .addOperation(StellarSdk.Operation.changeTrust({
-          asset: astroDollar,
-          limit: "0"
-        }))
-        .build();
-      transaction.sign(receivingKeys);
-      console.log('going to untrust the issuing account');
-      return server.submitTransaction(transaction)
-        .then(function(transactionResult) {
-            console.log(JSON.stringify(transactionResult, null, 2));
-            console.log('\nSuccess! View the transaction at: ');
-            console.log(transactionResult._links.transaction.href);
-
-            str += JSON.stringify(transactionResult, null, 2);
-            res.send(str);
-        });
-    })
-});
 
 // localhost:3000/receive
 app.post('/receive', function (request, response) {
@@ -311,19 +273,8 @@ app.use(function(err, req, res, next) {
     res.render('error');
 });
 
-// app.listen(3000, function() {
-//     console.log('Example app listening on port 3000!');
-// });
-
-var options = {
-    key: fs.readFileSync('/etc/apache2/ssl/server.key'),
-    cert: fs.readFileSync('/etc/apache2/ssl/server.crt'),
-    requestCert: false,
-    rejectUnauthorized: false
-};
-
-var server = https.createServer(options, app).listen(3000, function(){
-    console.log("server started at port 3000");
+app.listen(3000, function() {
+    console.log('Example app listening on port 3000!');
 });
 
 module.exports = app;
