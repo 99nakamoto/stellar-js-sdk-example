@@ -1,0 +1,2 @@
+FEDERATION_SERVER = "https://localhost:8002/federation"
+
